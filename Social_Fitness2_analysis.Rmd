@@ -11,26 +11,10 @@ knitr::opts_chunk$set(tidy.opts=list(width.cutoff=70),tidy=TRUE)
 #Load Packages and Connections
 
 ```{r load packages and connections, message=FALSE}
-# data management
-# library (plyr)  #Causes conflicts with dplyr
-# library(tidyverse)
-# library (krsp)
-# library (lubridate)
-# library(RCurl)
-
 # analysis
 library (lme4)
 library (lmerTest)
-#figures
-# library (visreg)
-# library (viridis)
-
-# connection to database
-con <- krsp_connect (host = "krsp.cepb5cjvqban.us-east-2.rds.amazonaws.com",
-                     dbname ="krsp",
-                     username = Sys.getenv("krsp_user"),
-                     password = Sys.getenv("krsp_password")
-                     )
+library (DHARMa)
 ```
 
 # Load Data
@@ -59,6 +43,10 @@ summary(glmer(survived~age+I(age^2)+grid+std_soc_surv2+(1|year)+(1|squirrel_id),
 summary(survival.1.random<-glmer(survived~age+I(age^2)+grid+std_soc_surv2*mast+(std_soc_surv2|year)+(1|squirrel_id), data=census_final, family=binomial, na.action=na.omit, control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5))))
 # singular: correlation of -1 and random slope variance very low.
 
+# Model without mast interaction
+summary(survival.1.random.temp<-glmer(survived~age+I(age^2)+grid+std_soc_surv2+mast+(std_soc_surv2|year)+(1|squirrel_id), data=census_final, family=binomial, na.action=na.omit, control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5))))
+# converged
+
 summary(survival.1.random<-glmer(survived~age+I(age^2)+grid+std_soc_surv2*mast+(1|year)+(0+std_soc_surv2|year)+(1|squirrel_id), data=census_final, family=binomial, na.action=na.omit, control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5))))
 # singular: random slope variance very low.
 
@@ -70,6 +58,22 @@ summary(glmer(survived~age+I(age^2)+grid+std_soc_surv2+(std_soc_surv2|year)+(1|s
 
 summary(glmer(survived~age+I(age^2)+grid+std_soc_surv2+(1|year)+(0+std_soc_surv2|year)+(1|squirrel_id), data=census_final, family=binomial, na.action=na.omit, subset=mast=="n", control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5))))
 # singular: random slope estimated as zero.
+```
+### Model diagnostics
+```{r}
+# survival.1
+
+testDispersion(survival.1)
+simulation_output_survival.1<-simulateResiduals(fittedModel = survival.1, n = 250)
+plot(simulation_output_survival.1)
+testUniformity(simulation_output_survival.1)
+testOutliers(simulation_output_survival.1)
+# note that some of these diagnostics are significant but the same size is very large and the deviations from expectation are very small.
+testDispersion(simulation_output_survival.1)
+testZeroInflation(simulation_output_survival.1)
+
+plotResiduals(simulation_output_survival.1, form = census_final$mast)
+plotResiduals(simulation_output_survival.1, form = census_final$social_survival2)
 ```
 
 
@@ -130,6 +134,24 @@ library (rstanarm)
 
 summary(bayesian_ars_model<-stan_glmer(all_litters_fit~age+I(age^2)+grid+std_soc_surv2*mast+std_soc_repro*mast+(std_soc_surv2+std_soc_repro|year)+(1|squirrel_id), data=census_final, family=poisson))
 ```
+### Model diagnostics
+```{r}
+# fit_all
+
+testDispersion(fit_all)
+simulation_output_fit_all<-simulateResiduals(fittedModel = fit_all, n = 250)
+plot(simulation_output_fit_all)
+testUniformity(simulation_output_fit_all)
+testOutliers(simulation_output_fit_all)
+# significant here...
+testDispersion(simulation_output_fit_all)
+testZeroInflation(simulation_output_fit_all)
+
+plotResiduals(simulation_output_fit_all, form = subset(census_final$mast, !is.na(census_final$all_litters_fit)))
+plotResiduals(simulation_output_fit_all, form = subset(census_final$social_repro, !is.na(census_final$all_litters_fit)))
+# perhaps soem wobbles here?
+```
+
 
 
 ### Analyses without SU 2008 Data

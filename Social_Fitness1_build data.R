@@ -387,6 +387,14 @@ census_final<-ddply(census_final, c("year", "grid"), transform, std_soc_repro = 
 census_final<-ddply(census_final, c("year", "grid"), transform, std_soc_surv = scale(social_survival))
 census_final<-ddply(census_final, c("year", "grid"), transform, std_soc_surv2 = scale(social_survival2))
 
+
+
+# exclude 41 observations with missing ages.
+# This helps with model diagnostics later because NA for age leads to exclusions of these obs anyway.
+census_final<-census_final %>% 
+  filter(!is.na(age))
+
+
 #############
 # Save Data #
 #############
