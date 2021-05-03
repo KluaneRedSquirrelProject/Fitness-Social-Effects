@@ -1,0 +1,144 @@
+---
+title: "Social Effects on Fitness"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning=FALSE, message=FALSE)
+knitr::opts_chunk$set(tidy.opts=list(width.cutoff=70),tidy=TRUE)
+```
+
+#Load Packages and Connections
+
+```{r load packages and connections, message=FALSE}
+# data management
+# library (plyr)  #Causes conflicts with dplyr
+# library(tidyverse)
+# library (krsp)
+# library (lubridate)
+# library(RCurl)
+
+# analysis
+library (lme4)
+library (lmerTest)
+#figures
+# library (visreg)
+# library (viridis)
+
+# connection to database
+con <- krsp_connect (host = "krsp.cepb5cjvqban.us-east-2.rds.amazonaws.com",
+                     dbname ="krsp",
+                     username = Sys.getenv("krsp_user"),
+                     password = Sys.getenv("krsp_password")
+                     )
+```
+
+# Load Data
+
+```{r}
+load("./data/Social_Fitness_Data.RData")
+```
+
+
+# Analysis
+
+## Survival
+
+### Distance-weighted Mortalities
+```{r Table 2}
+# Survival model 1
+## Table 2
+summary(survival.1<-glmer(survived~age+I(age^2)+grid+std_soc_surv2*mast+(1|year)+(1|squirrel_id), data=census_final, family=binomial, na.action=na.omit, control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5))))
+
+summary(glmer(survived~age+I(age^2)+grid+std_soc_surv2+(1|year)+(1|squirrel_id), data=census_final, family=binomial, na.action=na.omit, subset=mast=="y", control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5))))
+
+summary(glmer(survived~age+I(age^2)+grid+std_soc_surv2+(1|year)+(1|squirrel_id), data=census_final, family=binomial, na.action=na.omit, subset=mast=="n", control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5))))
+
+
+####  Random slope model
+summary(survival.1.random<-glmer(survived~age+I(age^2)+grid+std_soc_surv2*mast+(std_soc_surv2|year)+(1|squirrel_id), data=census_final, family=binomial, na.action=na.omit, control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5))))
+# singular: correlation of -1 and random slope variance very low.
+
+summary(survival.1.random<-glmer(survived~age+I(age^2)+grid+std_soc_surv2*mast+(1|year)+(0+std_soc_surv2|year)+(1|squirrel_id), data=census_final, family=binomial, na.action=na.omit, control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5))))
+# singular: random slope variance very low.
+
+summary(glmer(survived~age+I(age^2)+grid+std_soc_surv2+(std_soc_surv2|year)+(1|squirrel_id), data=census_final, family=binomial, na.action=na.omit, subset=mast=="y", control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5))))
+# converged
+
+summary(glmer(survived~age+I(age^2)+grid+std_soc_surv2+(std_soc_surv2|year)+(1|squirrel_id), data=census_final, family=binomial, na.action=na.omit, subset=mast=="n", control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5))))
+# singular
+
+summary(glmer(survived~age+I(age^2)+grid+std_soc_surv2+(1|year)+(0+std_soc_surv2|year)+(1|squirrel_id), data=census_final, family=binomial, na.action=na.omit, subset=mast=="n", control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5))))
+# singular: random slope estimated as zero.
+```
+
+
+### Distance-weighted Survival
+
+```{r Table 3}
+# Survival Model 2
+## Table 3
+summary(survival.2<-glmer(survived~age+I(age^2)+grid+std_soc_surv*mast+(1|year)+(1|squirrel_id), data=census_final, family=binomial, na.action=na.omit, control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5))))
+
+summary(glmer(survived~age+I(age^2)+grid+std_soc_surv+(1|year)+(1|squirrel_id), data=census_final, family=binomial, na.action=na.omit, subset=mast=="y", control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5))))
+
+summary(glmer(survived~age+I(age^2)+grid+std_soc_surv+(1|year)+(1|squirrel_id), data=census_final, family=binomial, na.action=na.omit, subset=mast=="n", control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5))))
+
+## Random slopes model
+
+summary(survival.2.random<-glmer(survived~age+I(age^2)+grid+std_soc_surv*mast+(std_soc_surv|year)+(1|squirrel_id), data=census_final, family=binomial, na.action=na.omit, control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5))))
+```
+
+
+## Reproductive Success Model
+```{r Table 4}
+# Using distance-weighted mortality
+### Table 4
+summary(fit_all<-glmer(all_litters_fit~age+I(age^2)+grid+std_soc_surv2*mast+std_soc_repro*mast+(1|year)+(1|squirrel_id), data=census_final, family=poisson, control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5))))
+
+# Including distance-weighted survival
+### Some results only presented in text
+summary(glmer(all_litters_fit~age+I(age^2)+grid+std_soc_surv*mast+std_soc_repro*mast+(1|year)+(1|squirrel_id), data=census_final, family=poisson, control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5))))
+
+### Random slopes models
+summary(fit_all_random<-glmer(all_litters_fit~age+I(age^2)+grid+std_soc_surv2*mast+std_soc_repro*mast+(std_soc_surv2+std_soc_repro|year)+(1|squirrel_id), data=census_final, family=poisson, control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5))))
+# singular: surv slope variance is very small.  Inference doesn't change
+
+summary(fit_all_random<-glmer(all_litters_fit~age+I(age^2)+grid+std_soc_surv2*mast+std_soc_repro*mast+(1|year)+(0+std_soc_surv2+std_soc_repro|year)+(1|squirrel_id), data=census_final, family=poisson, control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5))))
+# converged: surv random slope variance is small.  Correlation between random slopes was 1.00.  Inference for interaction between soc_repro and mast doesn't change.
+
+summary(fit_all_random<-glmer(all_litters_fit~age+I(age^2)+grid+std_soc_surv2*mast+std_soc_repro*mast+(1|year)+(0+std_soc_surv2|year)+(0+std_soc_repro|year)+(1|squirrel_id), data=census_final, family=poisson, control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5))))
+# Singular: surv random slope is estimated as zero.  Interaction inference doesn't change
+
+summary(fit_all_random<-glmer(all_litters_fit~age+I(age^2)+grid+std_soc_surv2*mast+std_soc_repro*mast+(0+std_soc_surv2|year)+(std_soc_repro|year)+(1|squirrel_id), data=census_final, family=poisson, control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5))))
+# Singular: surv random slope is estimated as zero.  Interaction inference doesn't change
+
+summary(fit_all_random<-glmer(all_litters_fit~age+I(age^2)+grid+std_soc_surv2*mast+std_soc_repro*mast+(std_soc_repro|year)+(1|squirrel_id), data=census_final, family=poisson, control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5))))
+#converged - inference doesn't change
+# positive correlation between slope and intercept means that in years of higher fitness there is a weaker social effect on fitness.  This parallels the effect of 'masting' which is just a category to represent a big change in mean fitness.
+
+
+### Other models
+
+summary(fit_all_random<-glmer(all_litters_fit~age+I(age^2)+grid+std_soc_surv2*mast+std_soc_repro*mast+(std_soc_surv2|year)+(std_soc_repro|year)+(1|squirrel_id), data=census_final, family=poisson, control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5))))
+
+summary(glmer(all_litters_fit~age+I(age^2)+grid+std_soc_surv*mast+std_soc_repro*mast+(std_soc_surv+std_soc_repro|year)+(1|squirrel_id), data=census_final, family=poisson, control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5))))
+
+
+### Bayesian
+library (rstanarm)
+
+summary(bayesian_ars_model<-stan_glmer(all_litters_fit~age+I(age^2)+grid+std_soc_surv2*mast+std_soc_repro*mast+(std_soc_surv2+std_soc_repro|year)+(1|squirrel_id), data=census_final, family=poisson))
+```
+
+
+### Analyses without SU 2008 Data
+
+```{r Table S1}
+# Table S1
+summary(glmer(all_litters_fit~age+I(age^2)+grid+std_soc_surv2*mast+std_soc_repro*mast+(1|year)+(1|squirrel_id), data=census_final, family=poisson, subset=!(year==2008&grid=="SU"), control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5))))
+
+
+# Random slopes
+summary(glmer(all_litters_fit~age+I(age^2)+grid+std_soc_surv2*mast+std_soc_repro*mast+(std_soc_repro|year)+(1|squirrel_id), data=census_final, family=poisson, subset=!(year==2008&grid=="SU"), control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5))))
+```
