@@ -18,7 +18,6 @@ library (DHARMa)
 ```
 
 # Load Data
-
 ```{r}
 load("./data/Social_Fitness_Data.RData")
 ```
@@ -43,7 +42,10 @@ summary(glmer(survived~age+I(age^2)+grid+std_soc_surv2+(1|year)+(1|squirrel_id),
 summary(survival.1.random<-glmer(survived~age+I(age^2)+grid+std_soc_surv2*mast+(std_soc_surv2|year)+(1|squirrel_id), data=census_final, family=binomial, na.action=na.omit, control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5))))
 # singular: correlation of -1 and random slope variance very low.
 
-# Model without mast interaction
+##################################
+# Model without mast interaction #
+##################################
+
 summary(survival.1.random.temp<-glmer(survived~age+I(age^2)+grid+std_soc_surv2+mast+(std_soc_surv2|year)+(1|squirrel_id), data=census_final, family=binomial, na.action=na.omit, control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5))))
 # converged
 
