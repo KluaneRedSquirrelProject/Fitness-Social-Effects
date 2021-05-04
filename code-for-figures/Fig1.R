@@ -1,7 +1,10 @@
 
 library(ggplot2)
+library(dplyr)
 
-results <- readRDS("output/results.RDS")
+#results <- readRDS("output/results.RDS")
+
+## Load Social_distance_Data.RData file from data/ 
 
 d_distances_KLSU<-results %>% 
   filter(philopatric==0,
@@ -12,7 +15,7 @@ d_distance<-d_distances_KLSU$distance
 
 length(d_distance)
 
-png("graphics/Fig1.png", width = 4000, height = 4000, units = "px", res = 600)
+png("figures/Fig1.png", width = 4000, height = 4000, units = "px", res = 600)
 ggplot(d_distances_KLSU) +
   geom_histogram(aes(distance), bins = 40) +
   xlab("Distance (m)") +
