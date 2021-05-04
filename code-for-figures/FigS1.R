@@ -3,8 +3,7 @@ library(data.table)
 library(ggplot)
 library(viridis)
 
-census_final_nonmast <- readRDS("output/census_final_nonmast.RDS")
-
+census_final_nonmast <- subset(census_final, mast == "n")
 
 aa <- census_final_nonmast %>% 
   filter(year==2008,
@@ -31,7 +30,7 @@ ggplot(cc) +
 
 allDF <- rbind(aa,cc)
 
-png("graphics/FigS1.png", height = 4000, width = 6000, units = "px", res = 600)
+png("figures/FigS1.png", height = 4000, width = 6000, units = "px", res = 600)
 
 ggplot(data = allDF, 
        aes(x=locx, y=locy, color=factor(all_litters_fit))) +
