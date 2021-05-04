@@ -1,22 +1,11 @@
 
-library(ggplot2)
-library(dplyr)
+library(tidyverse)
 
 #results <- readRDS("output/results.RDS")
 
 ## Load Social_distance_Data.RData file from data/ 
 
-d_distances_KLSU<-results %>% 
-  filter(philopatric==0,
-         grid%in%c("KL", "SU")) %>% 
-  select(distance)
-
-d_distance<-d_distances_KLSU$distance
-
-length(d_distance)
-
-png("figures/Fig1.png", width = 4000, height = 4000, units = "px", res = 600)
-ggplot(d_distances_KLSU) +
+fig1<-ggplot(d_distances_KLSU) +
   geom_histogram(aes(distance), bins = 40) +
   xlab("Distance (m)") +
   ylab("Frequency") +
@@ -29,7 +18,12 @@ ggplot(d_distances_KLSU) +
         panel.grid.minor = element_blank(),
         panel.background = element_blank(), 
         panel.border = element_rect(colour = "black", fill=NA, size = 1))
+
+png("figures/Fig1.png", width = 4000, height = 4000, units = "px", res = 600)
+print(fig1)
 dev.off()
+
+
 
 
 hist(d_distance, main="Dispersal distance by red squirrels", xlab="Distance (m)", breaks=40,)

@@ -27,8 +27,7 @@ vis_mast_repro <- visreg(fit4_mast, "std_soc_repro", xlab="ARS of others", ylab=
 vis_nonmast_repro <- visreg(fit4_nonmast, "std_soc_repro", xlab="ARS of others", ylab="ARS - partial") #, xlim=c(-2.5, 6), ylim=c(-3.3, 1.7))
 
 
-png("figures/FigS2.png", width = 6000, height = 3000, units = "px", res = 600)
-aa <- ggplot(filter(vis_nonmast_repro$fit), aes(std_soc_repro, visregFit))+
+figs2a <- ggplot(filter(vis_nonmast_repro$fit), aes(std_soc_repro, visregFit))+
   geom_line(colour = 'black', 
             size=1)+
   geom_point(data = filter(vis_nonmast_repro$res),
@@ -48,7 +47,7 @@ aa <- ggplot(filter(vis_nonmast_repro$fit), aes(std_soc_repro, visregFit))+
         panel.background = element_blank(), 
         panel.border = element_rect(colour = "black", fill=NA, size = 1))
 
-bb <- ggplot(filter(vis_mast_repro$fit), aes(std_soc_repro, visregFit))+
+figs2b <- ggplot(filter(vis_mast_repro$fit), aes(std_soc_repro, visregFit))+
   geom_line(colour = 'black', 
             size=1)+
   geom_point(data = filter(vis_mast_repro$res),
@@ -67,6 +66,8 @@ bb <- ggplot(filter(vis_mast_repro$fit), aes(std_soc_repro, visregFit))+
         panel.grid.minor = element_blank(),
         panel.background = element_blank(), 
         panel.border = element_rect(colour = "black", fill=NA, size = 1))
-grid.arrange(aa,bb,nrow = 1)
 
+
+png("figures/FigS2.png", width = 6000, height = 3000, units = "px", res = 600)
+grid.arrange(figs2a,figs2b,nrow = 1)
 dev.off()

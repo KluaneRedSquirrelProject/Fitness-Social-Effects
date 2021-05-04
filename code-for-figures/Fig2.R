@@ -29,8 +29,8 @@ summary(fit_mast<-glmer(survived~age+I(age^2)+grid+std_soc_surv2+(1|year)+(1|squ
 vis_nonmast <- visreg(fit_nonmast, "std_soc_surv2", xlab="Survival of others", ylab="log odds (survival)", ylim=c(-1, 3), xlim=c(-3.2, 3.2))
 vis_mast <- visreg(fit_mast, "std_soc_surv2", xlab="Survival of others", ylab="log odds (survival)", ylim=c(-1, 3), xlim=c(-3.2, 3.2))
 
-png("figures/Fig2.png", width = 6000, height = 3000, units = "px", res = 600)
-aa <- ggplot(filter(vis_nonmast$fit), aes(std_soc_surv2, visregFit))+
+
+fig2a <- ggplot(filter(vis_nonmast$fit), aes(std_soc_surv2, visregFit))+
   geom_line(colour = 'black', 
             size=1)+
   geom_point(data = filter(vis_nonmast$res),
@@ -50,7 +50,7 @@ aa <- ggplot(filter(vis_nonmast$fit), aes(std_soc_surv2, visregFit))+
         panel.background = element_blank(), 
         panel.border = element_rect(colour = "black", fill=NA, size = 1))
 
-bb <- ggplot(filter(vis_mast$fit), aes(std_soc_surv2, visregFit))+
+fig2b <- ggplot(filter(vis_mast$fit), aes(std_soc_surv2, visregFit))+
   geom_line(colour = 'black', 
             size=1)+
   geom_point(data = filter(vis_mast$res),
@@ -69,6 +69,7 @@ bb <- ggplot(filter(vis_mast$fit), aes(std_soc_surv2, visregFit))+
         panel.grid.minor = element_blank(),
         panel.background = element_blank(), 
         panel.border = element_rect(colour = "black", fill=NA, size = 1))
-grid.arrange(aa,bb,nrow = 1)
 
+png("figures/Fig2.png", width = 6000, height = 3000, units = "px", res = 600)
+grid.arrange(fig2a,fig2b,nrow = 1)
 dev.off()

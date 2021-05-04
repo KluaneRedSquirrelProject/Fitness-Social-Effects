@@ -1,6 +1,6 @@
 
 library(data.table)
-library(ggplot)
+library(ggplot2)
 library(viridis)
 
 census_final_nonmast <- subset(census_final, mast == "n")
@@ -30,9 +30,8 @@ ggplot(cc) +
 
 allDF <- rbind(aa,cc)
 
-png("figures/FigS1.png", height = 4000, width = 6000, units = "px", res = 600)
 
-ggplot(data = allDF, 
+figs1<-ggplot(data = allDF, 
        aes(x=locx, y=locy, color=factor(all_litters_fit))) +
   geom_point(size=4, alpha = 0.75) +
   scale_color_viridis(discrete=TRUE, labels=c("Females (no recruitement)", 
@@ -58,4 +57,6 @@ ggplot(data = allDF,
   facet_wrap(~grid, ncol = 1)
 
 
+png("figures/FigS1.png", height = 4000, width = 6000, units = "px", res = 600)
+print(figs1)
 dev.off()
