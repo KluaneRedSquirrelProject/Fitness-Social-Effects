@@ -6,10 +6,11 @@ library(visreg)
 library(lme4)
 library(dplyr)
 
-## load data
-census_final_nonmast <- readRDS("output/census_final_nonmast.RDS")
-census_final_mast <- saveRDS("output/census_final_mast.RDS")
+## load "census_final file from file from data/ 
 
+## subset to mast and non-mast years
+census_final_nonmast <- subset(census_final, mast == "n")
+census_final_mast <- subset(census_final, mast == "y")
 
 ## run models
 summary(fit_nonmast<-glmer(survived~age+I(age^2)+grid+std_soc_surv2+(1|year)+(1|squirrel_id), 
@@ -28,7 +29,7 @@ summary(fit_mast<-glmer(survived~age+I(age^2)+grid+std_soc_surv2+(1|year)+(1|squ
 vis_nonmast <- visreg(fit_nonmast, "std_soc_surv2", xlab="Survival of others", ylab="log odds (survival)", ylim=c(-1, 3), xlim=c(-3.2, 3.2))
 vis_mast <- visreg(fit_mast, "std_soc_surv2", xlab="Survival of others", ylab="log odds (survival)", ylim=c(-1, 3), xlim=c(-3.2, 3.2))
 
-png("graphics/Fig2.png", width = 6000, height = 3000, units = "px", res = 600)
+png("figures/Fig2.png", width = 6000, height = 3000, units = "px", res = 600)
 aa <- ggplot(filter(vis_nonmast$fit), aes(std_soc_surv2, visregFit))+
   geom_line(colour = 'black', 
             size=1)+
