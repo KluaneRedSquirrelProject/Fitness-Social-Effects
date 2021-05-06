@@ -344,26 +344,11 @@ census_final<-census_unique_KL_SU %>%
 ## Calculating social effects ##
 ################################
 
-n<-length(census_final$squirrel_id)
+source("functions/get_social.R")
 
-census_final$social_survival<-NULL
-census_final$social_repro<-NULL
-
-for (j in 1:n) {
-  temp<-subset(census_final, census_final$grid==census_final$grid[j]&census_final$year==census_final$year[j]&census_final$squirrel_id!=census_final$squirrel_id[j]) # consider only those observations from the same grid and year
-  temp$distance<-sqrt((30*(temp$locx-census_final$locx[j]))^2+(30*(temp$locy-census_final$locy[j]))^2)
-  n2<-length(temp$squirrel_id)
-  for (i in 1:n2) {        
-    temp$fraction[i]<-length(subset(d_distance, d_distance > temp$distance[i]))/length(d_distance)
-  }
-  temp$surv_frac<-temp$survived*temp$fraction
-  temp$surv_frac2<-temp$survived2*temp$fraction
-  temp$repro_frac<-temp$all_litters_fit*temp$fraction
-  
-  census_final$social_survival[j]<-sum(temp$surv_frac, na.rm=T)
-  census_final$social_survival2[j]<-sum(temp$surv_frac2, na.rm=T)
-  census_final$social_repro[j]<-sum(temp$repro_frac, na.rm=T)
-}
+census_final <- get_social(df = census_final, 
+                           n = length(census_final$squirrel_id),
+                           dist = d_distance)
 
 ####################
 ## Link Mast Data ##
