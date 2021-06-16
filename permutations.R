@@ -1,6 +1,7 @@
 
 library(tidyverse)
 library(data.table)
+library(lme4)
 
 #load data
 load("./data/Social_Fitness_Data.RData")
@@ -8,6 +9,7 @@ load("./data/Social_Fitness_Data.RData")
 ## convert to data.table object 
 setDT(census_final)
 
+## observed model
 mod_obs <-glmer(survived ~ 
                          age + 
                          I(age^2) + 
@@ -22,14 +24,39 @@ mod_obs <-glmer(survived ~
                        na.action=na.exclude, 
                        control=glmerControl(optimizer="bobyqa", optCtrl=list(maxfun=2e5)))
 
+
+
+################################
+## Calculating social effects ##
+################################
+
+source("functions/get_social.R")
+
+census_final$gr_year <- as.factor(paste(census_final$grid, census_final$year, sep = "_"))
+census_final <- census_final[, c("social_survival", "social_repro") := NULL]
+yr <- data.table(gr_year = as.character(census_final$gr_year),
+                 squirrel_id = as.character(census_final$squirrel_id))
+
+
+df_nn <- edge_dist(df2, id = "squirrel_id", coords = c("locx", "locy"), 
+                   timegroup = NULL, threshold = 10000, returnDist = T, 
+                   splitBy = "gr_year")
+
+
 ## number of permutations (Note, running 100 permutations will take awhile)
-perms <- 100
+perms <- 2
 
 ## blank output file
 out <- c()
 
 ## run the loop over the glmer
 for (i in 1:perms){
+  
+  ## generate 
+  census_final2 <- get_social(data1 = census_final, 
+                              n = length(census_final$squirrel_id),
+                              yr = yr,
+                              dist = d_distance)
   
   ## randomly re-assign values of std_soc_surv2 within grid-years
   census_final[, perm.social := sample(std_soc_surv2), 
