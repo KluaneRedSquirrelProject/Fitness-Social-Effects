@@ -346,8 +346,13 @@ census_final<-census_unique_KL_SU %>%
 
 source("functions/get_social.R")
 
+census_final$gr_year <- as.factor(paste(census_final$grid, census_final$year, sep = "_"))
+yr <- data.table(gr_year = as.character(census_final$gr_year),
+                 squirrel_id = as.character(census_final$squirrel_id))
+
 census_final <- get_social(df = census_final, 
                            n = length(census_final$squirrel_id),
+                           yr = yr,
                            dist = d_distance)
 
 ####################
