@@ -8,6 +8,7 @@ library (tidyverse)
 library (krsp)
 library (lubridate)
 library (RCurl)
+library (data.table)
 
 ############################
 ## connection to database ##
@@ -334,11 +335,12 @@ census_unique_KL_SU<-census_unique_KL_SU %>%
   left_join(flastall2, by="squirrel_id") %>% 
   mutate (survived = ifelse(datee-date>200, 1, 0),
           survived2 = ifelse(datee-date>200, 0, -1),
+          survived3 = ifelse(datee-date>200, 0.5, -0.5),
           all_litters_fit=ifelse(is.na(all_litters_fit)&sex=="F", 0, all_litters_fit),
           grid=as.factor(grid))
 
 census_final<-census_unique_KL_SU %>% 
-  select(squirrel_id, grid, locx, locy, year, sex, byear, survived, survived2, all_litters_fit, bcert)
+  select(squirrel_id, grid, locx, locy, year, sex, byear, survived, survived2, survived3, all_litters_fit, bcert)
 
 ################################
 ## Calculating social effects ##
@@ -350,7 +352,7 @@ census_final$gr_year <- as.factor(paste(census_final$grid, census_final$year, se
 yr <- data.table(gr_year = as.character(census_final$gr_year),
                  squirrel_id = as.character(census_final$squirrel_id))
 
-census_final <- get_social(df = census_final, 
+census_final <- get_social(data1 = census_final, 
                            n = length(census_final$squirrel_id),
                            yr = yr,
                            dist = d_distance)
@@ -376,7 +378,7 @@ census_final<-census_final %>%
 census_final<-ddply(census_final, c("year", "grid"), transform, std_soc_repro = scale(social_repro))
 census_final<-ddply(census_final, c("year", "grid"), transform, std_soc_surv = scale(social_survival))
 census_final<-ddply(census_final, c("year", "grid"), transform, std_soc_surv2 = scale(social_survival2))
-
+census_final<-ddply(census_final, c("year", "grid"), transform, std_soc_surv3 = scale(social_survival3))
 
 
 # exclude 41 observations with missing ages.
