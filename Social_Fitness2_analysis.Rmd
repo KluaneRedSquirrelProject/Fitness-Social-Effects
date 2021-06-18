@@ -97,9 +97,9 @@ summary(survival.2.random<-glmer(survived~age+I(age^2)+grid+std_soc_surv*mast+(s
 
 
 ## Reproductive Success Model
-```{r Table 4}
+```{r Table 3}
 # Using distance-weighted mortality
-### Table 4
+### Table 3
 summary(fit_all<-glmer(all_litters_fit~age+I(age^2)+grid+std_soc_surv2*mast+std_soc_repro*mast+(1|year)+(1|squirrel_id), data=census_final, family=poisson, control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5))))
 
 # Including distance-weighted survival

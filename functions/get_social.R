@@ -19,12 +19,13 @@ for (j in 1:n) {
   
   k = data.table(yr[j])
   
-  temp <- data1[gr_year == k$gr_year] #consider only those observations from the same grid and year
-  #AMc: I am getting an error here where for some reason it thinks gr_year is an objecct.  Can this be done in dplyr?
+  #temp <- data1[gr_year == k$gr_year] #consider only those observations from the same grid and year
+  #AMc: I am getting an error here where for some reason it thinks gr_year is an object.  Can this be done in dplyr?
   
-  #temp<-data1 %>% 
-  # filter (year == year[j],
-  #         grid == grid[j])
+  temp<-data1 %>% 
+    filter (year == year[j],
+            grid == grid[j],
+            squirrel_id != squirrel_id[j])
   
   temp$distance <- sqrt((30*(temp$locx - data1$locx[j]))^2 + (30*(temp$locy - data1$locy[j]))^2)
   
