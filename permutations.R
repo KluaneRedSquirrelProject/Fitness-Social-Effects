@@ -47,7 +47,7 @@ df_nn <- edge_dist(census_final, id = "squirrel_id", coords = c("locx", "locy"),
                    splitBy = "gr_year")
 
 ## number of permutations (Note, running 100 permutations will take awhile)
-perms <- 2
+perms <- 1000
 
 ## blank output file
 out <- c()
