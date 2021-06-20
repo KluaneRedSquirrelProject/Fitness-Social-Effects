@@ -72,6 +72,10 @@ for (i in 1:perms){
   
 }
   
+perm_out <- rbindlist(out)
+
+saveRDS(perm_out, "output/")
+
   ## run models
   mod_perm_soc_surv <-glmer(survived ~ 
                              age + 
