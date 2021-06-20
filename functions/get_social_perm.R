@@ -23,11 +23,14 @@ get_social <- function(data1, n, yr, dist, nn) {
   
 for (j in 1:n) {
   
-  k = data.table(yr[j])
+  temp<-data1 %>% 
+    filter (year == year[j],
+            grid == grid[j],
+            squirrel_id != squirrel_id[j])
   
-  temp <- data1[gr_year == k$gr_year] #consider only those observations from the same grid and year
+  temp$distance <- sqrt((30*(temp$locx - data1$locx[j]))^2 + (30*(temp$locy - data1$locy[j]))^2)
   
-  n2<-length(temp$squirrel_id)
+  n2<-length(temp$squirrel_id)  
   
   temp$distance <- sample(df_nn$distance, n2) #sqrt((30*(temp$locx - data1$locx[j]))^2 + (30*(temp$locy - data1$locy[j]))^2)
   
@@ -37,11 +40,12 @@ for (j in 1:n) {
   
   temp$surv_frac <- temp$survived*temp$fraction
   temp$surv_frac2 <- temp$survived2*temp$fraction
+  temp$surv_frac3 <- temp$survived3*temp$fraction
   temp$repro_frac <- temp$all_litters_fit*temp$fraction
   
-  #data1$distance[j] <- temp$distance
   data1$social_survival[j]<-sum(temp$surv_frac, na.rm=T)
   data1$social_survival2[j]<-sum(temp$surv_frac2, na.rm=T)
+  data1$social_survival3[j]<-sum(temp$surv_frac3, na.rm=T)
   data1$social_repro[j]<-sum(temp$repro_frac, na.rm=T)
 }
 
