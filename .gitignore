@@ -2,3 +2,6 @@
 .Rhistory
 .RData
 .Ruserdata
+
+
+output/social-perms-1000.RDS
