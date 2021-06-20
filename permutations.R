@@ -74,7 +74,7 @@ for (i in 1:perms){
   
 perm_out <- rbindlist(out)
 
-saveRDS(perm_out, "output/")
+saveRDS(perm_out, "output/social-perms-1000.RDS")
 
   ## run models
   mod_perm_soc_surv <-glmer(survived ~ 
