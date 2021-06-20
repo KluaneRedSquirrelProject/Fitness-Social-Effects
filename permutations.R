@@ -66,16 +66,21 @@ for (i in 1:perms){
   
   #Standardize within grid-years
   soc_rdm[, perm_std_soc_surv := scale(perm.social.surv), by = c("grid", "year")]
+  soc_rdm$iter <- i
+  
+  out[[i]] <- soc_rdm
+  
+}
   
   ## run models
   mod_perm_soc_surv <-glmer(survived ~ 
                              age + 
                              I(age^2) + 
                              grid + 
-                              perm_std_soc_surv + 
+                             perm_std_soc_surv + 
                              mast +
                              mast * perm_std_soc_surv +
-                             (perm_std_soc_surv|year) + 
+                             (1|year) + 
                              (1|squirrel_id), 
                            data=soc_rdm, 
                            family=binomial, 
@@ -95,7 +100,6 @@ for (i in 1:perms){
 
   out[[i]] <- coefs
   
-}
 
 ## the output will be a list, so turn it back into a DT
 out <- rbindlist(out)
