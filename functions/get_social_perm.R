@@ -28,8 +28,6 @@ for (j in 1:n) {
             grid == grid[j],
             squirrel_id != squirrel_id[j])
   
-  temp$distance <- sqrt((30*(temp$locx - data1$locx[j]))^2 + (30*(temp$locy - data1$locy[j]))^2)
-  
   n2<-length(temp$squirrel_id)  
   
   temp$distance <- sample(df_nn$distance, n2) #sqrt((30*(temp$locx - data1$locx[j]))^2 + (30*(temp$locy - data1$locy[j]))^2)
