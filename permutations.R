@@ -75,7 +75,7 @@ ptm <- proc.time()
 for (i in 1:perms){
   
   ## generate 
-  soc_rdm <- get_social(data1 = census_final, 
+  soc_rdm <- get_social_perm(data1 = census_final, 
                               n = length(census_final$squirrel_id),
                               yr = yr,
                               dist = d_distance,
@@ -93,11 +93,11 @@ proc.time() - ptm
   
 perm_out <- rbindlist(out)
 
-saveRDS(perm_out, "output/social-perms-100.RDS")
+saveRDS(perm_out, "output/social-perms-100-2.RDS")
 
 ## read permutation file back in
 
-perm_out <- readRDS("output/social-perms-100.RDS")
+perm_out <- readRDS("output/social-perms-100-2.RDS")
 
 perm_out[, perm_std_soc_surv1 := scale(social_survival), by = c("grid", "year")]
 perm_out[, perm_std_soc_surv2 := scale(social_survival2), by = c("grid", "year")]

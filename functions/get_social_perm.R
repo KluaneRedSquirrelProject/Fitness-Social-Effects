@@ -5,7 +5,7 @@
 ### social effects function ###
 ################################
 
-get_social <- function(data1, n, yr, dist, nn) {
+get_social_perm <- function(data1, n, yr, dist, nn) {
   
   ## data1 = census_final data frame
   ## n = n in first loop
