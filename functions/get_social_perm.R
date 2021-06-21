@@ -13,11 +13,6 @@ get_social <- function(data1, n, yr, dist, nn) {
   ## dist = d_distance
   ## nn = vector of distance between all individuals
   
-  data1 <- census_final
-  n = length(census_final$squirrel_id)
-  dist = d_distance
-  nn = df_nn
-  
   data1$social_survival <- c()
   data1$social_repro <- c()
   
