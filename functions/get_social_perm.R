@@ -25,7 +25,7 @@ for (j in 1:n) {
   
   n2<-length(temp$squirrel_id)  
   
-  temp$distance <- sample(df_nn$distance, n2) #sqrt((30*(temp$locx - data1$locx[j]))^2 + (30*(temp$locy - data1$locy[j]))^2)
+  temp$distance <- sample(nn$distance, n2) #sqrt((30*(temp$locx - data1$locx[j]))^2 + (30*(temp$locy - data1$locy[j]))^2)
   
   for (i in 1:n2) {        
     temp$fraction[i] <- length(subset(dist, dist > temp$distance[i]))/length(dist)
