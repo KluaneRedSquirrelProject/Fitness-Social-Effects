@@ -63,10 +63,12 @@ yr <- data.table(gr_year = as.character(census_final$gr_year),
 
 df_nn <- edge_dist(census_final, id = "squirrel_id", coords = c("locx", "locy"), 
                    timegroup = NULL, threshold = 10000, returnDist = T, 
-                   splitBy = "gr_year")
+                   splitBy = c("grid", "year"))
+
+df_nn <- df_nn[!c(ID1 == ID2)]
 
 ## number of permutations (Note, running 100 permutations will take awhile)
-perms <- 100
+perms <- 1
 
 ## blank output file
 out <- c()
@@ -77,12 +79,9 @@ for (i in 1:perms){
   ## generate 
   soc_rdm <- get_social_perm(data1 = census_final, 
                               n = length(census_final$squirrel_id),
-                              yr = yr,
                               dist = d_distance,
                               nn = df_nn)
 
-  soc_rdm$perm.social.surv <- soc_rdm$social_survival
-  
   soc_rdm$iter <- i
   
   out[[i]] <- soc_rdm
@@ -93,11 +92,11 @@ proc.time() - ptm
   
 perm_out <- rbindlist(out)
 
-saveRDS(perm_out, "output/social-perms-100-2.RDS")
+saveRDS(perm_out, "output/social-perms-100.RDS")
 
 ## read permutation file back in
 
-perm_out <- readRDS("output/social-perms-100-2.RDS")
+perm_out <- readRDS("output/social-perms-100.RDS")
 
 perm_out[, perm_std_soc_surv1 := scale(social_survival), by = c("grid", "year")]
 perm_out[, perm_std_soc_surv2 := scale(social_survival2), by = c("grid", "year")]
