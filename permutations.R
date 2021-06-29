@@ -50,25 +50,34 @@ summary(mod_obs_repro)
 ## Calculating social effects ##
 ################################
 
+## load function
 source("functions/get_social_perm.R")
 
-census_final$gr_year <- as.factor(paste(census_final$grid, census_final$year, sep = "_"))
-census_final <- census_final[, c("social_survival", "social_repro", "std_soc_repro", "std_soc_surv", "std_soc_surv2") := NULL]
-census_final$locx <- census_final$locx*30
-census_final$locy <- census_final$locy*30
 
-yr <- data.table(gr_year = as.character(census_final$gr_year),
-                 squirrel_id = as.character(census_final$squirrel_id))
+## prep data for get_social_perm function 
+census_final2 <- census_final
 
+census_final2$gr_year <- as.factor(paste(census_final2$grid, census_final2$year, sep = "_"))
+## remove all of the "observed" social survival/repro values
+census_final2 <- census_final2[, c("social_survival", 
+                                   "social_survival2",
+                                   "social_survival3",
+                                   "social_repro", 
+                                   "std_soc_repro", 
+                                   "std_soc_surv", 
+                                   "std_soc_surv2",
+                                   "std_soc_surv3") := NULL]
+census_final2$locx <- census_final2$locx*30
+census_final2$locy <- census_final2$locy*30
 
-df_nn <- edge_dist(census_final, id = "squirrel_id", coords = c("locx", "locy"), 
+df_nn <- edge_dist(census_final2, id = "squirrel_id", coords = c("locx", "locy"), 
                    timegroup = NULL, threshold = 10000, returnDist = T, 
                    splitBy = c("grid", "year"))
 
 df_nn <- df_nn[!c(ID1 == ID2)]
 
 ## number of permutations (Note, running 100 permutations will take awhile)
-perms <- 1
+perms <- 100
 
 ## blank output file
 out <- c()
@@ -77,8 +86,8 @@ ptm <- proc.time()
 for (i in 1:perms){
   
   ## generate 
-  soc_rdm <- get_social_perm(data1 = census_final, 
-                              n = length(census_final$squirrel_id),
+  soc_rdm <- get_social_perm(data1 = census_final2, 
+                              n = length(census_final2$squirrel_id),
                               dist = d_distance,
                               nn = df_nn)
 
@@ -98,11 +107,15 @@ saveRDS(perm_out, "output/social-perms-100.RDS")
 
 perm_out <- readRDS("output/social-perms-100.RDS")
 
-perm_out[, perm_std_soc_surv1 := scale(social_survival), by = c("grid", "year")]
-perm_out[, perm_std_soc_surv2 := scale(social_survival2), by = c("grid", "year")]
-perm_out[, perm_std_soc_surv3 := scale(social_survival3), by = c("grid", "year")]
-perm_out[, perm_std_soc_repro := scale(social_repro), by = c("grid", "year")]
+perm_out[, perm_std_soc_surv1 := scale(social_survival), by = c("grid", "year", "iter")]
+perm_out[, perm_std_soc_surv2 := scale(social_survival2), by = c("grid", "year", "iter")]
+perm_out[, perm_std_soc_surv3 := scale(social_survival3), by = c("grid", "year", "iter")]
+perm_out[, perm_std_soc_repro := scale(social_repro), by = c("grid", "year", "iter")]
 
+ggplot(perm_out) +
+  geom_histogram(aes(perm_std_soc_surv3, group = iter, fill = as.factor(iter)), 
+                 alpha = 0.5) 
+  
 mod_out <- c()
 for (i in 1:length(unique(perm_out$iter))){
   
