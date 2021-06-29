@@ -12,12 +12,9 @@ get_social_perm <- function(data1, n, dist, nn) {
   ## dist = d_distance
   ## nn = vector of distance between all individuals
   
-  data1$social_survival <- c()
-  data1$social_repro <- c()
-  
 for (j in 1:n) {
   
-  temp<-census_final %>% 
+  temp<-data1 %>% 
     filter (year == year[j],
             grid == grid[j],
             squirrel_id != squirrel_id[j])
