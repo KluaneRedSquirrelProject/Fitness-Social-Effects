@@ -67,13 +67,19 @@ census_final2 <- census_final2[, c("social_survival",
                                    "std_soc_surv", 
                                    "std_soc_surv2",
                                    "std_soc_surv3") := NULL]
-census_final2$locx <- census_final2$locx*30
-census_final2$locy <- census_final2$locy*30
 
+## calculate all pairwise combinations of distance 
 df_nn <- edge_dist(census_final2, id = "squirrel_id", coords = c("locx", "locy"), 
                    timegroup = NULL, threshold = 10000, returnDist = T, 
                    splitBy = c("grid", "year"))
 
+## convert locx/locy distance to metres
+df_nn$distance <- df_nn$distance*30
+
+## check histogram of distance 
+hist(df_nn$distance)
+
+## remove any distances to between self
 df_nn <- df_nn[!c(ID1 == ID2)]
 
 ## number of permutations (Note, running 100 permutations will take awhile)
@@ -81,7 +87,7 @@ perms <- 100
 
 ## blank output file
 out <- c()
-ptm <- proc.time()
+
 ## run the loop over the glmer
 for (i in 1:perms){
   
@@ -96,26 +102,24 @@ for (i in 1:perms){
   out[[i]] <- soc_rdm
   
 }
-proc.time() - ptm
 
-  
+## convert list to DT  
 perm_out <- rbindlist(out)
 
+## save file 
 saveRDS(perm_out, "output/social-perms-100.RDS")
 
 ## read permutation file back in
-
 perm_out <- readRDS("output/social-perms-100.RDS")
 
+
+## scale social survival and social repro values by grid, year, iter
 perm_out[, perm_std_soc_surv1 := scale(social_survival), by = c("grid", "year", "iter")]
 perm_out[, perm_std_soc_surv2 := scale(social_survival2), by = c("grid", "year", "iter")]
 perm_out[, perm_std_soc_surv3 := scale(social_survival3), by = c("grid", "year", "iter")]
 perm_out[, perm_std_soc_repro := scale(social_repro), by = c("grid", "year", "iter")]
 
-ggplot(perm_out) +
-  geom_histogram(aes(perm_std_soc_surv3, group = iter, fill = as.factor(iter)), 
-                 alpha = 0.5) 
-  
+## run survival 3 (-0.5/0.5)  
 mod_out <- c()
 for (i in 1:length(unique(perm_out$iter))){
   
@@ -157,9 +161,10 @@ for (i in 1:length(unique(perm_out$iter))){
 mod_out <- rbindlist(mod_out)
 saveRDS(mod_out, "output/model_soc3.RDS")
 
+## load permtation models that use social_survival3
 mod_out_surv <- readRDS("output/model_soc3.RDS")
 
-
+## pull average coefficients from permuted models
 data.table(variable = c("intercept", "age", "age2", "grid", "perm_soc_surv", 
                         "mast", "mast_perm_soc_surv"),
            avg = c(mean(mod_out_surv$intercept),  
@@ -185,7 +190,7 @@ data.table(variable = c("intercept", "age", "age2", "grid", "perm_soc_surv",
                      quantile(mod_out_surv$mast_perm_std_soc_surv, c(0.975))))
 
 
-
+## run model 
 mod_out <- c()
 for (i in 1:length(unique(perm_out$iter))){
   
