@@ -3,6 +3,7 @@ library(tidyverse)
 library(data.table)
 library(lme4)
 library(spatsoc)
+library(Rmisc)
 
 #load data
 load("./data/Social_Fitness_Data.RData")
@@ -112,7 +113,6 @@ saveRDS(perm_out, "output/social-perms-100.RDS")
 ## read permutation file back in
 perm_out <- readRDS("output/social-perms-100.RDS")
 
-
 ## scale social survival and social repro values by grid, year, iter
 perm_out[, perm_std_soc_surv1 := scale(social_survival), by = c("grid", "year", "iter")]
 perm_out[, perm_std_soc_surv2 := scale(social_survival2), by = c("grid", "year", "iter")]
@@ -165,7 +165,7 @@ saveRDS(mod_out, "output/model_soc3.RDS")
 mod_out_surv <- readRDS("output/model_soc3.RDS")
 
 ## pull average coefficients from permuted models
-data.table(variable = c("intercept", "age", "age2", "grid", "perm_soc_surv", 
+model1 <- data.table(variable = c("intercept", "age", "age2", "grid", "perm_soc_surv", 
                         "mast", "mast_perm_soc_surv"),
            avg = c(mean(mod_out_surv$intercept),  
                    mean(mod_out_surv$age), 
@@ -174,21 +174,23 @@ data.table(variable = c("intercept", "age", "age2", "grid", "perm_soc_surv",
                    mean(mod_out_surv$perm_std_soc_surv), 
                    mean(mod_out_surv$mast), 
                    mean(mod_out_surv$mast_perm_std_soc_surv)),
-           lwrCI = c(quantile(mod_out_surv$intercept, c(0.025)), 
-                     quantile(mod_out_surv$age, c(0.025)), 
-                     quantile(mod_out_surv$age2, c(0.025)),
-                     quantile(mod_out_surv$grid, c(0.025)), 
-                     quantile(mod_out_surv$perm_std_soc_surv, c(0.025)), 
-                     quantile(mod_out_surv$mast, c(0.025)), 
-                     quantile(mod_out_surv$mast_perm_std_soc_surv, c(0.025))), 
-           uprCI = c(quantile(mod_out_surv$intercept, c(0.975)), 
-                     quantile(mod_out_surv$age, c(0.975)), 
-                     quantile(mod_out_surv$age2, c(0.975)),
-                     quantile(mod_out_surv$grid, c(0.975)), 
-                     quantile(mod_out_surv$perm_std_soc_surv, c(0.975)), 
-                     quantile(mod_out_surv$mast, c(0.975)), 
-                     quantile(mod_out_surv$mast_perm_std_soc_surv, c(0.975))))
+           lwrCI = c(CI(mod_out_surv$intercept)[3], 
+                     CI(mod_out_surv$age)[3], 
+                     CI(mod_out_surv$age2)[3],
+                     CI(mod_out_surv$grid)[3], 
+                     CI(mod_out_surv$perm_std_soc_surv)[3], 
+                     CI(mod_out_surv$mast)[3], 
+                     CI(mod_out_surv$mast_perm_std_soc_surv)[3]), 
+           uprCI = c(
+             CI(mod_out_surv$intercept)[1], 
+             CI(mod_out_surv$age)[1], 
+             CI(mod_out_surv$age2)[1],
+             CI(mod_out_surv$grid)[1], 
+             CI(mod_out_surv$perm_std_soc_surv)[1], 
+             CI(mod_out_surv$mast)[1], 
+             CI(mod_out_surv$mast_perm_std_soc_surv)[1]))
 
+model1
 
 ## run model 
 mod_out <- c()
@@ -237,31 +239,33 @@ mod_out2 <- rbindlist(mod_out)
 
 saveRDS(mod_out2, "output/model_repro.RDS")
 
-data.table(variable = c("intercept", "age", "age2", "grid", "perm_soc_surv", 
+model2 <- data.table(variable = c("intercept", "age", "age2", "grid", "perm_soc_surv", 
                         "perm_soc_repro", "mast", "mast_perm_soc_surv", "mast_perm_soc_repro"),
            avg = c(mean(mod_out2$intercept),  mean(mod_out2$age), 
            mean(mod_out2$age2), mean(mod_out2$grid),  mean(mod_out2$perm_std_soc_surv), 
            mean(mod_out2$perm_std_soc_repro),  mean(mod_out2$mast), 
            mean(mod_out2$mast_perm_std_soc_surv), mean(mod_out2$mast_perm_std_soc_repro)),
-           lwrCI = c(quantile(mod_out2$intercept, c(0.025)), 
-                  quantile(mod_out2$age, c(0.025)), 
-                  quantile(mod_out2$age2, c(0.025)),
-                  quantile(mod_out2$grid, c(0.025)), 
-                  quantile(mod_out2$perm_std_soc_surv, c(0.025)), 
-                  quantile(mod_out2$perm_std_soc_repro, c(0.025)), 
-                  quantile(mod_out2$mast, c(0.025)), 
-                  quantile(mod_out2$mast_perm_std_soc_surv, c(0.025)), 
-                  quantile(mod_out2$mast_perm_std_soc_repro, c(0.025))),
-           uprCI = c(quantile(mod_out2$intercept, c(0.975)), 
-                     quantile(mod_out2$age, c(0.975)), 
-                     quantile(mod_out2$age2, c(0.975)),
-                     quantile(mod_out2$grid, c(0.975)), 
-                     quantile(mod_out2$perm_std_soc_surv, c(0.975)), 
-                     quantile(mod_out2$perm_std_soc_repro, c(0.975)), 
-                     quantile(mod_out2$mast, c(0.975)), 
-                     quantile(mod_out2$mast_perm_std_soc_surv, c(0.975)), 
-                     quantile(mod_out2$mast_perm_std_soc_repro, c(0.975))))
+           lwrCI = c(CI(mod_out2$intercept)[3], 
+                     CI(mod_out2$age)[3], 
+                     CI(mod_out2$age2)[3],
+                     CI(mod_out2$grid)[3], 
+                     CI(mod_out2$perm_std_soc_surv)[3], 
+                     CI(mod_out2$perm_std_soc_repro)[3], 
+                     CI(mod_out2$mast)[3], 
+                     CI(mod_out2$mast_perm_std_soc_surv)[3], 
+                     CI(mod_out2$mast_perm_std_soc_repro)[3]),
+           uprCI = c(
+             CI(mod_out2$intercept)[1], 
+             CI(mod_out2$age)[1], 
+             CI(mod_out2$age2)[1],
+             CI(mod_out2$grid)[1], 
+             CI(mod_out2$perm_std_soc_surv)[1], 
+             CI(mod_out2$perm_std_soc_repro)[1], 
+             CI(mod_out2$mast)[1], 
+             CI(mod_out2$mast_perm_std_soc_surv)[1], 
+             CI(mod_out2$mast_perm_std_soc_repro)[1]))
 
+model2
 
 ## plot figure
 ggplot() +
@@ -269,6 +273,8 @@ ggplot() +
                   geom_vline(aes(xintercept = fixef(mod_obs_repro)[8]), 
                              color = "red",
                              lwd = 1) +
+                  geom_vline(aes(xintercept = CI(mod_out2$mast_perm_std_soc_surv)[1])) +
+                  geom_vline(aes(xintercept = CI(mod_out2$mast_perm_std_soc_surv)[3])) +
                   ylab("Frequency") +
                   xlab("Coefficient for the effect of survival of others") +
                   theme(legend.position = c(0.75,0.8),
@@ -280,6 +286,5 @@ ggplot() +
                         panel.grid.minor = element_blank(),
                         panel.background = element_blank(), 
                         panel.border = element_rect(colour = "black", fill=NA, size = 1))
-
 
 
