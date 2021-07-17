@@ -342,21 +342,6 @@ census_unique_KL_SU<-census_unique_KL_SU %>%
 census_final<-census_unique_KL_SU %>% 
   select(squirrel_id, grid, locx, locy, year, sex, byear, survived, survived2, survived3, all_litters_fit, bcert)
 
-################################
-## Calculating social effects ##
-################################
-
-source("functions/get_social.R")
-
-census_final$gr_year <- as.factor(paste(census_final$grid, census_final$year, sep = "_"))
-yr <- data.table(gr_year = as.character(census_final$gr_year),
-                 squirrel_id = as.character(census_final$squirrel_id))
-
-census_final <- get_social(data1 = census_final, 
-                           n = length(census_final$squirrel_id),
-                           yr = yr,
-                           dist = d_distance)
-
 ####################
 ## Link Mast Data ##
 ####################
@@ -365,6 +350,18 @@ cones_temp<-cones_grids_years %>%
 
 census_final<-census_final %>% 
   left_join(cones_temp, by=c("year", "grid"))
+
+
+################################
+## Calculating social effects ##
+################################
+
+source("functions/get_social.R")
+
+census_final <- get_social(data1 = census_final, 
+                           n = length(census_final$squirrel_id),
+                           dist = d_distance)
+
 
 ####################################################################
 ## Calculate age and standardize social effects within grid-years ##
@@ -379,7 +376,8 @@ census_final<-ddply(census_final, c("year", "grid"), transform, std_soc_repro = 
 census_final<-ddply(census_final, c("year", "grid"), transform, std_soc_surv = scale(social_survival))
 census_final<-ddply(census_final, c("year", "grid"), transform, std_soc_surv2 = scale(social_survival2))
 census_final<-ddply(census_final, c("year", "grid"), transform, std_soc_surv3 = scale(social_survival3))
-
+census_final<-ddply(census_final, c("year", "grid"), transform, std_soc_repro2 = scale(social_repro2))
+census_final<-ddply(census_final, c("year", "grid"), transform, std_soc_surv4 = scale(social_survival4))
 
 # exclude 41 observations with missing ages.
 # This helps with model diagnostics later because NA for age leads to exclusions of these obs anyway.
