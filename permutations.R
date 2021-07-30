@@ -12,25 +12,58 @@ load("./data/Social_Fitness_Data.RData")
 setDT(census_final)
 
 ## observed model
-mod_obs <-glmer(survived ~ 
+mod_obs3 <-glmer(survived ~ 
                          age + 
                          I(age^2) + 
                          grid + 
                          std_soc_surv3 + 
                          mast +
                          mast * std_soc_surv3 +
-                         (1|year) + 
+                         (std_soc_surv3||year) + 
                          (1|squirrel_id), 
                        data=census_final, 
                        family=binomial, 
                        na.action=na.exclude, 
                        control=glmerControl(optimizer="bobyqa", optCtrl=list(maxfun=2e5)))
 
-summary(mod_obs)
-
+summary(mod_obs3)
 
 ## observed model
-mod_obs_repro <-glmer(survived ~ 
+mod_obs2 <-glmer(survived ~ 
+                   age + 
+                   I(age^2) + 
+                   grid + 
+                   std_soc_surv2 + 
+                   mast +
+                   mast * std_soc_surv2 +
+                   (std_soc_surv2||year) + 
+                   (1|squirrel_id), 
+                 data=census_final, 
+                 family=binomial, 
+                 na.action=na.exclude, 
+                 control=glmerControl(optimizer="bobyqa", optCtrl=list(maxfun=2e5)))
+
+summary(mod_obs2)
+
+## observed model
+mod_obs1 <-glmer(survived ~ 
+                   age + 
+                   I(age^2) + 
+                   grid + 
+                   std_soc_surv + 
+                   mast +
+                   mast * std_soc_surv +
+                   (std_soc_surv||year) + 
+                   (1|squirrel_id), 
+                 data=census_final, 
+                 family=binomial, 
+                 na.action=na.exclude, 
+                 control=glmerControl(optimizer="bobyqa", optCtrl=list(maxfun=2e5)))
+
+summary(mod_obs1)
+
+## observed model (survival coded as -0.5/0.5)
+mod_obs_repro <-glmer(all_litters_fit ~ 
                   age + 
                   I(age^2) + 
                   grid + 
@@ -39,7 +72,7 @@ mod_obs_repro <-glmer(survived ~
                   mast +
                   mast * std_soc_surv3 +
                   mast * std_soc_repro +
-                  (1|year) + 
+                  (std_soc_surv3+std_soc_repro||year) + 
                   (1|squirrel_id), 
                 data=census_final, 
                 family=poisson, 
@@ -47,6 +80,45 @@ mod_obs_repro <-glmer(survived ~
                 control=glmerControl(optimizer="bobyqa", optCtrl=list(maxfun=2e5)))
 
 summary(mod_obs_repro)
+
+## observed model (survival coded as -1/0)
+mod_obs_repro2 <-glmer(all_litters_fit ~ 
+                        age + 
+                        I(age^2) + 
+                        grid + 
+                        std_soc_surv2 + 
+                        std_soc_repro +
+                        mast +
+                        mast * std_soc_surv2 +
+                        mast * std_soc_repro +
+                        (std_soc_surv2+std_soc_repro||year) + 
+                        (1|squirrel_id), 
+                      data=census_final, 
+                      family=poisson, 
+                      na.action=na.exclude, 
+                      control=glmerControl(optimizer="bobyqa", optCtrl=list(maxfun=2e5)))
+
+summary(mod_obs_repro2)
+
+## observed model (survival coded as 1/0)
+mod_obs_repro1 <-glmer(all_litters_fit ~ 
+                         age + 
+                         I(age^2) + 
+                         grid + 
+                         std_soc_surv + 
+                         std_soc_repro +
+                         mast +
+                         mast * std_soc_surv +
+                         mast * std_soc_repro +
+                         (std_soc_surv+std_soc_repro||year) + 
+                         (1|squirrel_id), 
+                       data=census_final, 
+                       family=poisson, 
+                       na.action=na.exclude, 
+                       control=glmerControl(optimizer="bobyqa", optCtrl=list(maxfun=2e5)))
+
+summary(mod_obs_repro1)
+
 ################################
 ## Calculating social effects ##
 ################################
@@ -133,7 +205,7 @@ for (i in 1:length(unique(perm_out$iter))){
                              perm_std_soc_surv3 + 
                              mast +
                              mast * perm_std_soc_surv3 +
-                             (1|year) + 
+                             (perm_std_soc_surv3||year) + 
                              (1|squirrel_id), 
                            data=rdm, 
                            family=binomial, 
@@ -161,11 +233,98 @@ for (i in 1:length(unique(perm_out$iter))){
 mod_out <- rbindlist(mod_out)
 saveRDS(mod_out, "output/model_soc3.RDS")
 
+
+## run survival 1 (0/1)
+mod_out <- c()
+for (i in 1:length(unique(perm_out$iter))){
+  
+  rdm <- perm_out[iter == i]
+  
+  ## run models
+  mod_perm_soc_surv <-glmer(survived ~ 
+                              age + 
+                              I(age^2) + 
+                              grid + 
+                              perm_std_soc_surv1 + 
+                              mast +
+                              mast * perm_std_soc_surv1 +
+                              (perm_std_soc_surv1||year) + 
+                              (1|squirrel_id), 
+                            data=rdm, 
+                            family=binomial, 
+                            na.action=na.exclude, 
+                            control=glmerControl(optimizer="bobyqa", 
+                                                 optCtrl=list(maxfun=2e5)))
+  
+  # get the fixed effect coefficient you want to test
+  coefs <- data.table(intercept = fixef(mod_perm_soc_surv)[1], # intercept
+                      age = fixef(mod_perm_soc_surv)[2],    # age
+                      age2 = fixef(mod_perm_soc_surv)[3],    # age2
+                      grid = fixef(mod_perm_soc_surv)[4],  
+                      perm_std_soc_surv = fixef(mod_perm_soc_surv)[5],
+                      mast = fixef(mod_perm_soc_surv)[6],
+                      mast_perm_std_soc_surv = fixef(mod_perm_soc_surv)[7],
+                      iter = i)
+  
+  
+  mod_out[[i]] <- coefs
+  
+}
+
+
+## the output will be a list, so turn it back into a DT
+mod_out <- rbindlist(mod_out)
+saveRDS(mod_out, "output/model_soc1.RDS")
+
+
+## run survival 2 (0/-1)
+mod_out <- c()
+for (i in 1:length(unique(perm_out$iter))){
+  
+  rdm <- perm_out[iter == i]
+  
+  ## run models
+  mod_perm_soc_surv <-glmer(survived ~ 
+                              age + 
+                              I(age^2) + 
+                              grid + 
+                              perm_std_soc_surv2 + 
+                              mast +
+                              mast * perm_std_soc_surv2 +
+                              (perm_std_soc_surv2||year) + 
+                              (1|squirrel_id), 
+                            data=rdm, 
+                            family=binomial, 
+                            na.action=na.exclude, 
+                            control=glmerControl(optimizer="bobyqa", 
+                                                 optCtrl=list(maxfun=2e5)))
+  
+  # get the fixed effect coefficient you want to test
+  coefs <- data.table(intercept = fixef(mod_perm_soc_surv)[1], # intercept
+                      age = fixef(mod_perm_soc_surv)[2],    # age
+                      age2 = fixef(mod_perm_soc_surv)[3],    # age2
+                      grid = fixef(mod_perm_soc_surv)[4],  
+                      perm_std_soc_surv = fixef(mod_perm_soc_surv)[5],
+                      mast = fixef(mod_perm_soc_surv)[6],
+                      mast_perm_std_soc_surv = fixef(mod_perm_soc_surv)[7],
+                      iter = i)
+  
+  
+  mod_out[[i]] <- coefs
+  
+}
+
+
+## the output will be a list, so turn it back into a DT
+mod_out2 <- rbindlist(mod_out)
+saveRDS(mod_out2, "output/model_soc2.RDS")
+
+
 ## load permtation models that use social_survival3
 mod_out_surv <- readRDS("output/model_soc3.RDS")
 
 ## pull average coefficients from permuted models
-model1 <- data.table(variable = c("intercept", "age", "age2", "grid", "perm_soc_surv", 
+model_surv3 <- data.table(variable = c("intercept", "age", "age2", "grid", "perm_soc_surv", 
                         "mast", "mast_perm_soc_surv"),
            avg = c(mean(mod_out_surv$intercept),  
                    mean(mod_out_surv$age), 
@@ -190,7 +349,70 @@ model1 <- data.table(variable = c("intercept", "age", "age2", "grid", "perm_soc_
              CI(mod_out_surv$mast)[1], 
              CI(mod_out_surv$mast_perm_std_soc_surv)[1]))
 
-model1
+model_surv3
+
+## load permtation models that use social_survival2
+mod_out_sur2 <- readRDS("output/model_soc2.RDS")
+
+## pull average coefficients from permuted models
+model_surv2 <- data.table(variable = c("intercept", "age", "age2", "grid", "perm_soc_surv", 
+                                       "mast", "mast_perm_soc_surv"),
+                          avg = c(mean(mod_out_sur2$intercept),  
+                                  mean(mod_out_sur2$age), 
+                                  mean(mod_out_sur2$age2), 
+                                  mean(mod_out_sur2$grid),  
+                                  mean(mod_out_sur2$perm_std_soc_surv), 
+                                  mean(mod_out_sur2$mast), 
+                                  mean(mod_out_sur2$mast_perm_std_soc_surv)),
+                          lwrCI = c(CI(mod_out_sur2$intercept)[3], 
+                                    CI(mod_out_sur2$age)[3], 
+                                    CI(mod_out_sur2$age2)[3],
+                                    CI(mod_out_sur2$grid)[3], 
+                                    CI(mod_out_sur2$perm_std_soc_surv)[3], 
+                                    CI(mod_out_sur2$mast)[3], 
+                                    CI(mod_out_sur2$mast_perm_std_soc_surv)[3]), 
+                          uprCI = c(
+                            CI(mod_out_sur2$intercept)[1], 
+                            CI(mod_out_sur2$age)[1], 
+                            CI(mod_out_sur2$age2)[1],
+                            CI(mod_out_sur2$grid)[1], 
+                            CI(mod_out_sur2$perm_std_soc_surv)[1], 
+                            CI(mod_out_sur2$mast)[1], 
+                            CI(mod_out_sur2$mast_perm_std_soc_surv)[1]))
+
+model_surv2
+
+## load permtation models that use social_survival1
+mod_out_sur1 <- readRDS("output/model_soc1.RDS")
+
+## pull average coefficients from permuted models
+model_surv1 <- data.table(variable = c("intercept", "age", "age2", "grid", "perm_soc_surv", 
+                                       "mast", "mast_perm_soc_surv"),
+                          avg = c(mean(mod_out_sur1$intercept),  
+                                  mean(mod_out_sur1$age), 
+                                  mean(mod_out_sur1$age2), 
+                                  mean(mod_out_sur1$grid),  
+                                  mean(mod_out_sur1$perm_std_soc_surv), 
+                                  mean(mod_out_sur1$mast), 
+                                  mean(mod_out_sur1$mast_perm_std_soc_surv)),
+                          lwrCI = c(CI(mod_out_sur1$intercept)[3], 
+                                    CI(mod_out_sur1$age)[3], 
+                                    CI(mod_out_sur1$age2)[3],
+                                    CI(mod_out_sur1$grid)[3], 
+                                    CI(mod_out_sur1$perm_std_soc_surv)[3], 
+                                    CI(mod_out_sur1$mast)[3], 
+                                    CI(mod_out_sur1$mast_perm_std_soc_surv)[3]), 
+                          uprCI = c(
+                            CI(mod_out_sur1$intercept)[1], 
+                            CI(mod_out_sur1$age)[1], 
+                            CI(mod_out_sur1$age2)[1],
+                            CI(mod_out_sur1$grid)[1], 
+                            CI(mod_out_sur1$perm_std_soc_surv)[1], 
+                            CI(mod_out_sur1$mast)[1], 
+                            CI(mod_out_sur1$mast_perm_std_soc_surv)[1]))
+
+model_surv1
+
 
 ## run model 
 mod_out <- c()
@@ -208,7 +430,7 @@ for (i in 1:length(unique(perm_out$iter))){
                               mast +
                               mast * perm_std_soc_surv3 +
                               mast * perm_std_soc_repro +
-                              (1|year) + 
+                              (perm_std_soc_surv3+perm_std_soc_repro||year) + 
                               (1|squirrel_id), 
                             data=rdm, 
                             family=poisson, 
@@ -236,36 +458,197 @@ for (i in 1:length(unique(perm_out$iter))){
 
 ## the output will be a list, so turn it back into a DT
 mod_out2 <- rbindlist(mod_out)
+saveRDS(mod_out2, "output/model_repro3.RDS")
 
-saveRDS(mod_out2, "output/model_repro.RDS")
 
-model2 <- data.table(variable = c("intercept", "age", "age2", "grid", "perm_soc_surv", 
+## run model with soc_surv2
+mod_out <- c()
+for (i in 1:length(unique(perm_out$iter))){
+  
+  rdm <- perm_out[iter == i]
+  
+  ## run models
+  mod_perm_soc_repro <-glmer(all_litters_fit ~ 
+                               age + 
+                               I(age^2) + 
+                               grid + 
+                               perm_std_soc_surv2 + 
+                               perm_std_soc_repro + 
+                               mast +
+                               mast * perm_std_soc_surv2 +
+                               mast * perm_std_soc_repro +
+                               (perm_std_soc_surv2+perm_std_soc_repro||year) + 
+                               (1|squirrel_id), 
+                             data=rdm, 
+                             family=poisson, 
+                             na.action=na.exclude, 
+                             control=glmerControl(optimizer="bobyqa", 
+                                                  optCtrl=list(maxfun=2e5)))
+  
+  # get the fixed effect coefficient you want to test
+  coefs <- data.table(intercept = fixef(mod_perm_soc_repro)[1], # intercept
+                      age = fixef(mod_perm_soc_repro)[2],    # age
+                      age2 = fixef(mod_perm_soc_repro)[3],    # age2
+                      grid = fixef(mod_perm_soc_repro)[4],  
+                      perm_std_soc_surv = fixef(mod_perm_soc_repro)[5],
+                      perm_std_soc_repro = fixef(mod_perm_soc_repro)[6],
+                      mast = fixef(mod_perm_soc_repro)[7],
+                      mast_perm_std_soc_surv = fixef(mod_perm_soc_repro)[8],
+                      mast_perm_std_soc_repro = fixef(mod_perm_soc_repro)[9],
+                      iter = i)
+  
+  
+  mod_out[[i]] <- coefs
+  
+}
+
+## the output will be a list, so turn it back into a DT
+mod_out2 <- rbindlist(mod_out)
+saveRDS(mod_out2, "output/model_repro2.RDS")
+
+
+## run model with soc_surv1
+mod_out <- c()
+for (i in 1:length(unique(perm_out$iter))){
+  
+  rdm <- perm_out[iter == i]
+  
+  ## run models
+  mod_perm_soc_repro <-glmer(all_litters_fit ~ 
+                               age + 
+                               I(age^2) + 
+                               grid + 
+                               perm_std_soc_surv1 + 
+                               perm_std_soc_repro + 
+                               mast +
+                               mast * perm_std_soc_surv1 +
+                               mast * perm_std_soc_repro +
+                               (perm_std_soc_surv1+perm_std_soc_repro||year) + 
+                               (1|squirrel_id), 
+                             data=rdm, 
+                             family=poisson, 
+                             na.action=na.exclude, 
+                             control=glmerControl(optimizer="bobyqa", 
+                                                  optCtrl=list(maxfun=2e5)))
+  
+  # get the fixed effect coefficient you want to test
+  coefs <- data.table(intercept = fixef(mod_perm_soc_repro)[1], # intercept
+                      age = fixef(mod_perm_soc_repro)[2],    # age
+                      age2 = fixef(mod_perm_soc_repro)[3],    # age2
+                      grid = fixef(mod_perm_soc_repro)[4],  
+                      perm_std_soc_surv = fixef(mod_perm_soc_repro)[5],
+                      perm_std_soc_repro = fixef(mod_perm_soc_repro)[6],
+                      mast = fixef(mod_perm_soc_repro)[7],
+                      mast_perm_std_soc_surv = fixef(mod_perm_soc_repro)[8],
+                      mast_perm_std_soc_repro = fixef(mod_perm_soc_repro)[9],
+                      iter = i)
+  
+  
+  mod_out[[i]] <- coefs
+  
+}
+
+## the output will be a list, so turn it back into a DT
+mod_out2 <- rbindlist(mod_out)
+saveRDS(mod_out2, "output/model_repro1.RDS")
+
+mod_repro3 <- readRDS("output/model_repro3.RDS")
+mod_repro2 <- readRDS("output/model_repro2.RDS")
+mod_repro1 <- readRDS("output/model_repro1.RDS")
+
+
+model_repro3 <- data.table(variable = c("intercept", "age", "age2", "grid", "perm_soc_surv", 
                         "perm_soc_repro", "mast", "mast_perm_soc_surv", "mast_perm_soc_repro"),
-           avg = c(mean(mod_out2$intercept),  mean(mod_out2$age), 
-           mean(mod_out2$age2), mean(mod_out2$grid),  mean(mod_out2$perm_std_soc_surv), 
-           mean(mod_out2$perm_std_soc_repro),  mean(mod_out2$mast), 
-           mean(mod_out2$mast_perm_std_soc_surv), mean(mod_out2$mast_perm_std_soc_repro)),
-           lwrCI = c(CI(mod_out2$intercept)[3], 
-                     CI(mod_out2$age)[3], 
-                     CI(mod_out2$age2)[3],
-                     CI(mod_out2$grid)[3], 
-                     CI(mod_out2$perm_std_soc_surv)[3], 
-                     CI(mod_out2$perm_std_soc_repro)[3], 
-                     CI(mod_out2$mast)[3], 
-                     CI(mod_out2$mast_perm_std_soc_surv)[3], 
-                     CI(mod_out2$mast_perm_std_soc_repro)[3]),
+           avg = c(mean(mod_repro3$intercept),  mean(mod_repro3$age), 
+           mean(mod_repro3$age2), mean(mod_repro3$grid),  mean(mod_repro3$perm_std_soc_surv), 
+           mean(mod_repro3$perm_std_soc_repro),  mean(mod_repro3$mast), 
+           mean(mod_repro3$mast_perm_std_soc_surv), mean(mod_repro3$mast_perm_std_soc_repro)),
+           lwrCI = c(CI(mod_repro3$intercept)[3], 
+                     CI(mod_repro3$age)[3], 
+                     CI(mod_repro3$age2)[3],
+                     CI(mod_repro3$grid)[3], 
+                     CI(mod_repro3$perm_std_soc_surv)[3], 
+                     CI(mod_repro3$perm_std_soc_repro)[3], 
+                     CI(mod_repro3$mast)[3], 
+                     CI(mod_repro3$mast_perm_std_soc_surv)[3], 
+                     CI(mod_repro3$mast_perm_std_soc_repro)[3]),
            uprCI = c(
-             CI(mod_out2$intercept)[1], 
-             CI(mod_out2$age)[1], 
-             CI(mod_out2$age2)[1],
-             CI(mod_out2$grid)[1], 
-             CI(mod_out2$perm_std_soc_surv)[1], 
-             CI(mod_out2$perm_std_soc_repro)[1], 
-             CI(mod_out2$mast)[1], 
-             CI(mod_out2$mast_perm_std_soc_surv)[1], 
-             CI(mod_out2$mast_perm_std_soc_repro)[1]))
+             CI(mod_repro3$intercept)[1], 
+             CI(mod_repro3$age)[1], 
+             CI(mod_repro3$age2)[1],
+             CI(mod_repro3$grid)[1], 
+             CI(mod_repro3$perm_std_soc_surv)[1], 
+             CI(mod_repro3$perm_std_soc_repro)[1], 
+             CI(mod_repro3$mast)[1], 
+             CI(mod_repro3$mast_perm_std_soc_surv)[1], 
+             CI(mod_repro3$mast_perm_std_soc_repro)[1]))
 
-model2
+model_repro3
+
+
+
+model_repro2 <- data.table(variable = c("intercept", "age", "age2", "grid", "perm_soc_surv", 
+                                        "perm_soc_repro", "mast", "mast_perm_soc_surv", "mast_perm_soc_repro"),
+                           avg = c(mean(mod_repro2$intercept),  mean(mod_repro2$age), 
+                                   mean(mod_repro2$age2), mean(mod_repro2$grid),  mean(mod_repro2$perm_std_soc_surv), 
+                                   mean(mod_repro2$perm_std_soc_repro),  mean(mod_repro2$mast), 
+                                   mean(mod_repro2$mast_perm_std_soc_surv), mean(mod_repro2$mast_perm_std_soc_repro)),
+                           lwrCI = c(CI(mod_repro2$intercept)[3], 
+                                     CI(mod_repro2$age)[3], 
+                                     CI(mod_repro2$age2)[3],
+                                     CI(mod_repro2$grid)[3], 
+                                     CI(mod_repro2$perm_std_soc_surv)[3], 
+                                     CI(mod_repro2$perm_std_soc_repro)[3], 
+                                     CI(mod_repro2$mast)[3], 
+                                     CI(mod_repro2$mast_perm_std_soc_surv)[3], 
+                                     CI(mod_repro2$mast_perm_std_soc_repro)[3]),
+                           uprCI = c(
+                             CI(mod_repro2$intercept)[1], 
+                             CI(mod_repro2$age)[1], 
+                             CI(mod_repro2$age2)[1],
+                             CI(mod_repro2$grid)[1], 
+                             CI(mod_repro2$perm_std_soc_surv)[1], 
+                             CI(mod_repro2$perm_std_soc_repro)[1], 
+                             CI(mod_repro2$mast)[1], 
+                             CI(mod_repro2$mast_perm_std_soc_surv)[1], 
+                             CI(mod_repro2$mast_perm_std_soc_repro)[1]))
+
+model_repro2
+
+
+
+model_repro1 <- data.table(variable = c("intercept", "age", "age2", "grid", "perm_soc_surv", 
+                                        "perm_soc_repro", "mast", "mast_perm_soc_surv", "mast_perm_soc_repro"),
+                           avg = c(mean(mod_repro1$intercept),  mean(mod_repro1$age), 
+                                   mean(mod_repro1$age2), mean(mod_repro1$grid),  mean(mod_repro1$perm_std_soc_surv), 
+                                   mean(mod_repro1$perm_std_soc_repro),  mean(mod_repro1$mast), 
+                                   mean(mod_repro1$mast_perm_std_soc_surv), mean(mod_repro1$mast_perm_std_soc_repro)),
+                           lwrCI = c(CI(mod_repro1$intercept)[3], 
+                                     CI(mod_repro1$age)[3], 
+                                     CI(mod_repro1$age2)[3],
+                                     CI(mod_repro1$grid)[3], 
+                                     CI(mod_repro1$perm_std_soc_surv)[3], 
+                                     CI(mod_repro1$perm_std_soc_repro)[3], 
+                                     CI(mod_repro1$mast)[3], 
+                                     CI(mod_repro1$mast_perm_std_soc_surv)[3], 
+                                     CI(mod_repro1$mast_perm_std_soc_repro)[3]),
+                           uprCI = c(
+                             CI(mod_repro1$intercept)[1], 
+                             CI(mod_repro1$age)[1], 
+                             CI(mod_repro1$age2)[1],
+                             CI(mod_repro1$grid)[1], 
+                             CI(mod_repro1$perm_std_soc_surv)[1], 
+                             CI(mod_repro1$perm_std_soc_repro)[1], 
+                             CI(mod_repro1$mast)[1], 
+                             CI(mod_repro1$mast_perm_std_soc_surv)[1], 
+                             CI(mod_repro1$mast_perm_std_soc_repro)[1]))
+
+model_repro1
+
+
+
+
+
 
 ## plot figure
 ggplot() +
