@@ -15,12 +15,12 @@ census_final_nonmast <- subset(census_final, mast == "n")
 census_final_mast <- subset(census_final, mast == "y")
 
 ## run models
-summary(fit4_mast<-glmer(all_litters_fit~age+I(age^2)+grid+std_soc_surv2+std_soc_repro+(1|year)+(1|squirrel_id), 
+summary(fit4_mast<-glmer(all_litters_fit~age+I(age^2)+grid+std_soc_surv3+std_soc_repro+(1|year)+(1|squirrel_id), 
                     data=census_final_mast, 
                     family=poisson, 
                     control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5))))
 
-summary(fit4_nonmast<-glmer(all_litters_fit~age+I(age^2)+grid+std_soc_surv2+std_soc_repro+(1|year)+(1|squirrel_id), 
+summary(fit4_nonmast<-glmer(all_litters_fit~age+I(age^2)+grid+std_soc_surv3+std_soc_repro+(1|year)+(1|squirrel_id), 
                          data=census_final_nonmast,  #subset=!(year==2008&grid=="SU"), 
                          family=poisson,  
                          control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5))))
