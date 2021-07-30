@@ -13,12 +13,12 @@ census_final_nonmast <- subset(census_final, mast == "n")
 census_final_mast <- subset(census_final, mast == "y")
 
 ## run models
-summary(fit_nonmast<-glmer(survived~age+I(age^2)+grid+std_soc_surv2+(1|year)+(1|squirrel_id), 
+summary(fit_nonmast<-glmer(survived~age+I(age^2)+grid+std_soc_surv3+(1|year)+(1|squirrel_id), 
                            data=census_final_nonmast, 
                            family=binomial, 
                            na.action=na.exclude, 
                            control=glmerControl(optimizer="bobyqa", optCtrl=list(maxfun=2e5))))
-summary(fit_mast<-glmer(survived~age+I(age^2)+grid+std_soc_surv2+(1|year)+(1|squirrel_id), 
+summary(fit_mast<-glmer(survived~age+I(age^2)+grid+std_soc_surv3+(1|year)+(1|squirrel_id), 
                         data=census_final_mast, 
                         family=binomial, 
                         na.action=na.exclude, 
@@ -26,15 +26,15 @@ summary(fit_mast<-glmer(survived~age+I(age^2)+grid+std_soc_surv2+(1|year)+(1|squ
 
 
 ## FIGURE 2
-vis_nonmast <- visreg(fit_nonmast, "std_soc_surv2", xlab="Survival of others", ylab="log odds (survival)", ylim=c(-1, 3), xlim=c(-3.2, 3.2))
-vis_mast <- visreg(fit_mast, "std_soc_surv2", xlab="Survival of others", ylab="log odds (survival)", ylim=c(-1, 3), xlim=c(-3.2, 3.2))
+vis_nonmast <- visreg(fit_nonmast, "std_soc_surv3", xlab="Survival of others", ylab="log odds (survival)", ylim=c(-1, 3), xlim=c(-3.2, 3.2))
+vis_mast <- visreg(fit_mast, "std_soc_surv3", xlab="Survival of others", ylab="log odds (survival)", ylim=c(-1, 3), xlim=c(-3.2, 3.2))
 
 
-fig2a <- ggplot(filter(vis_nonmast$fit), aes(std_soc_surv2, visregFit))+
+fig2a <- ggplot(filter(vis_nonmast$fit), aes(std_soc_surv3, visregFit))+
   geom_line(colour = 'black', 
             size=1)+
   geom_point(data = filter(vis_nonmast$res),
-             aes(std_soc_surv2, visregRes), 
+             aes(std_soc_surv3, visregRes), 
              alpha = 0.8, 
              color = "#d8b365") +
   xlab('Survival of others') +
@@ -50,11 +50,11 @@ fig2a <- ggplot(filter(vis_nonmast$fit), aes(std_soc_surv2, visregFit))+
         panel.background = element_blank(), 
         panel.border = element_rect(colour = "black", fill=NA, size = 1))
 
-fig2b <- ggplot(filter(vis_mast$fit), aes(std_soc_surv2, visregFit))+
+fig2b <- ggplot(filter(vis_mast$fit), aes(std_soc_surv3, visregFit))+
   geom_line(colour = 'black', 
             size=1)+
   geom_point(data = filter(vis_mast$res),
-             aes(std_soc_surv2, visregRes), 
+             aes(std_soc_surv3, visregRes), 
              alpha = 0.8, 
              color = "#5ab4ac") +
   xlab('Survival of others') +
