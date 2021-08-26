@@ -27,14 +27,11 @@ load("./data/Social_Fitness_Data.RData")
 
 ## Survival
 
-```{r}
+```{r Table 2}
 # Survival model 1
 ## Table 2
 # Random slopes
 summary(survival.1<-glmer(survived~age+I(age^2)+grid+std_soc_surv3*mast+(std_soc_surv3||year)+(1|squirrel_id), data=census_final, family=binomial, na.action=na.omit, control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5))))
-
-#summary(glmer(survived~age+I(age^2)+grid+std_soc_surv3+(std_soc_surv3||year)+(1|squirrel_id), data=census_final, family=binomial, na.action=na.omit, subset=mast=="y", control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5))))
-# Did not converge
 
 # no random slopes for mast years individually
 summary(glmer(survived~age+I(age^2)+grid+std_soc_surv3+(1|year)+(1|squirrel_id), data=census_final, family=binomial, na.action=na.omit, subset=mast=="y", control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5))))
@@ -76,28 +73,6 @@ plotResiduals(simulation_output_survival.1, form = census_final$social_survival2
 ###############
 summary(reproduction.1<-glmer(all_litters_fit~age+I(age^2)+grid+std_soc_surv3*mast+std_soc_repro*mast+(std_soc_surv3+std_soc_repro||year)+(1|squirrel_id), data=census_final, family=poisson, control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5))))
 # converged: random intercept and random slopes but no correlation estimated between random slopes and intercept
-
-
-##############################
-# Other random slopes models #
-##############################
-
-### Full random slopes model
-#summary(glmer(all_litters_fit~age+I(age^2)+grid+std_soc_surv3*mast+std_soc_repro*mast+(std_soc_surv3+std_soc_repro|year)+(1|squirrel_id), data=census_final, family=poisson, control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5))))
-# Did not converge: variation in soc_surv slopes is low and correlation between random slopes and random slopes is -1
-
-# Two intercepts and random slopes
-#summary(glmer(all_litters_fit~age+I(age^2)+grid+std_soc_surv3*mast+std_soc_repro*mast+(std_soc_surv3|year)+(std_soc_repro|year)+(1|squirrel_id), data=census_final, family=poisson, control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5))))
-# Did not converge
-
-# Random slope for soc_repro allowed to covary with the random intercept but the random slope for soc_surv3 is independent of the random year intercept.
-summary(glmer(all_litters_fit~age+I(age^2)+grid+std_soc_surv3*mast+std_soc_repro*mast+(0+std_soc_surv3|year)+(std_soc_repro|year)+(1|squirrel_id), data=census_final, family=poisson, control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5))))
-# converged
-
-
-summary(glmer(all_litters_fit~age+I(age^2)+grid+std_soc_surv3*mast+std_soc_repro*mast+(std_soc_surv3|year)+(0+std_soc_repro|year)+(1|squirrel_id), data=census_final, family=poisson, control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5))))
-# converged
-
 ```
 
 
@@ -129,7 +104,7 @@ summary(survival.S1<-glmer(survived~age+I(age^2)+grid+std_soc_surv2*mast+(1|year
 # random slopes models did not converge.  random slope variance was very low.
 
 
-#summary(glmer(survived~age+I(age^2)+grid+std_soc_surv2*mast+(std_soc_surv2||year)+(1|squirrel_id), data=census_final, family=binomial, na.action=na.omit, control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5))))
+summary(glmer(survived~age+I(age^2)+grid+std_soc_surv2*mast+(std_soc_surv2||year)+(1|squirrel_id), data=census_final, family=binomial, na.action=na.omit, control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5))))
 # Did not converge
 ```
 
@@ -140,22 +115,35 @@ summary(survival.S1<-glmer(survived~age+I(age^2)+grid+std_soc_surv2*mast+(1|year
 # Table S2
 summary(survival.S2<-glmer(survived~age+I(age^2)+grid+std_soc_surv*mast+(std_soc_surv||year)+(1|squirrel_id), data=census_final, family=binomial, na.action=na.omit, control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5))))
 
-# no random slopes
+# no random slopes for comparison above
 summary(glmer(survived~age+I(age^2)+grid+std_soc_surv*mast+(1|year)+(1|squirrel_id), data=census_final, family=binomial, na.action=na.omit, control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5))))
+```
+
+## Reproductive Success Supplemental Models
+
+### Distance weighted survival
+```{r}
+summary(reproduction.2<-glmer(all_litters_fit~age+I(age^2)+grid+std_soc_surv*mast+std_soc_repro*mast+(std_soc_surv+std_soc_repro||year)+(1|squirrel_id), data=census_final, family=poisson, control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5))))
+
+```
+
+### Distance-weighted mortality
+```{r}
+summary(reproduction.3<-glmer(all_litters_fit~age+I(age^2)+grid+std_soc_surv2*mast+std_soc_repro*mast+(std_soc_surv2+std_soc_repro||year)+(1|squirrel_id), data=census_final, family=poisson, control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5))))
+# singular
+
+summary(reproduction.3b<-glmer(all_litters_fit~age+I(age^2)+grid+std_soc_surv2*mast+std_soc_repro*mast+(std_soc_repro||year)+(1|squirrel_id), data=census_final, family=poisson, control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5))))
+
 ```
 
 
 ### Analyses without SU 2008 Data
 
-```{r Table SX}
-# Table SX
+```{r Table S7}
+# Table S7
 summary(glmer(all_litters_fit~age+I(age^2)+grid+std_soc_surv3*mast+std_soc_repro*mast+(std_soc_repro+std_soc_surv3||year)+(1|squirrel_id), data=census_final, family=poisson, subset=!(year==2008&grid=="SU"), control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5))))
 ```
 
 
 ### Permutation Tests
-TO BE ADDED
-```{r}
-
-```
-
+See 'permutations.R'

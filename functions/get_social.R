@@ -32,16 +32,12 @@ for (j in 1:n) {
   temp$surv_frac <- temp$survived*temp$fraction
   temp$surv_frac2 <- temp$survived2*temp$fraction
   temp$surv_frac3 <- temp$survived3*temp$fraction
-  temp$surv_frac4<- temp$survived3
   temp$repro_frac <- temp$all_litters_fit*temp$fraction
-  temp$repro_frac2 <- temp$all_litters_fit
   
   data1$social_survival[j]<-sum(temp$surv_frac, na.rm=T)
   data1$social_survival2[j]<-sum(temp$surv_frac2, na.rm=T)
   data1$social_survival3[j]<-sum(temp$surv_frac3, na.rm=T)
-  data1$social_survival4[j]<-sum(temp$surv_frac4, na.rm=T)
   data1$social_repro[j]<-sum(temp$repro_frac, na.rm=T)
-  data1$social_repro2[j]<-sum(temp$repro_frac2, na.rm=T)
 }
 
   data1

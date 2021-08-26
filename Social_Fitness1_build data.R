@@ -59,7 +59,7 @@ flastall2<- tbl(con, "flastall2") %>%
   collect() %>% 
   filter(gr %in% c("SU", "KL"),
          !is.na(sex)) %>% 
-  dplyr::select(squirrel_id, sex, byear, bcert, datee) %>% 
+  dplyr::select(squirrel_id, sex, byear, datee) %>% 
   mutate (sex=as.factor(sex),
           datee=as.Date(datee))
 
@@ -340,13 +340,13 @@ census_unique_KL_SU<-census_unique_KL_SU %>%
           grid=as.factor(grid))
 
 census_final<-census_unique_KL_SU %>% 
-  select(squirrel_id, grid, locx, locy, year, sex, byear, survived, survived2, survived3, all_litters_fit, bcert)
+  select(squirrel_id, grid, locx, locy, year, sex, byear, survived, survived2, survived3, all_litters_fit)
 
 ####################
 ## Link Mast Data ##
 ####################
 cones_temp<-cones_grids_years %>% 
-  select (year=Year, grid=Grid, mast, cone_index_t, cone_index_tm1)
+  select (year=Year, grid=Grid, mast)
 
 census_final<-census_final %>% 
   left_join(cones_temp, by=c("year", "grid"))
@@ -376,13 +376,14 @@ census_final<-ddply(census_final, c("year", "grid"), transform, std_soc_repro = 
 census_final<-ddply(census_final, c("year", "grid"), transform, std_soc_surv = scale(social_survival))
 census_final<-ddply(census_final, c("year", "grid"), transform, std_soc_surv2 = scale(social_survival2))
 census_final<-ddply(census_final, c("year", "grid"), transform, std_soc_surv3 = scale(social_survival3))
-census_final<-ddply(census_final, c("year", "grid"), transform, std_soc_repro2 = scale(social_repro2))
-census_final<-ddply(census_final, c("year", "grid"), transform, std_soc_surv4 = scale(social_survival4))
 
 # exclude 41 observations with missing ages.
 # This helps with model diagnostics later because NA for age leads to exclusions of these obs anyway.
 census_final<-census_final %>% 
-  filter(!is.na(age))
+  filter(!is.na(age)) %>% 
+  select(-byear)
+
+write.csv(census_final, "census_final.csv")
 
 
 #############
